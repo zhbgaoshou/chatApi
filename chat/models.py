@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 class Room(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, help_text='创建该会话的用户id')
     name = models.CharField(max_length=100, help_text='会话名字')
+    active = models.BooleanField(default=False, help_text='记录当前会话')
 
     def __str__(self):
         return self.name

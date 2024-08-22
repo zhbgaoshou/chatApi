@@ -1,8 +1,8 @@
 from django.urls import path
 from . import views
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register('room', views.RoomView, basename='room')
 router.register('message', views.MessageView, basename='message')
 
