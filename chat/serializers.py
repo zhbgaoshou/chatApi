@@ -4,6 +4,7 @@ from chat.models import Room, Message
 
 
 class RoomSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Room
         fields = '__all__'
@@ -15,4 +16,3 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = '__all__'
         # depth = 1
-

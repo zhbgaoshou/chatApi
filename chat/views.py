@@ -1,7 +1,9 @@
 import json
 from datetime import datetime
 
+from django.db import transaction
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -77,12 +79,33 @@ class ChatView(GenericAPIView):
 
 
 class RoomView(ModelViewSet):
-    queryset = Room.objects.all()
+    queryset = Room.objects.all().order_by('-create_time')
     serializer_class = RoomSerializer
     filterset_fields = ['user']
     search_fields = ['name']
     ordering_fields = ['user__username', 'id']  # 允许排序的字段
-    ordering = ['id']
+    ordering = ['-create_time']
+
+    @action(detail=False, methods=['patch'])
+    @transaction.atomic
+    def update_active(self, request, *args, **kwargs):
+        if not isinstance(request.data, list):
+            return Response({'error': 'Expected a list of items.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        # 从序列化器中提取已验证的数据
+        instances = []
+        for item in request.data:
+            instance = Room.objects.get(id=item['id'])
+            instance.active = item['active']
+            instances.append(instance)
+
+        # 使用 bulk_update 方法批量更新
+        Room.objects.bulk_update(instances, ['active'])
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MessageView(ModelViewSet):
