@@ -24,6 +24,8 @@ client = OpenAI(
 
 # Create your views here.
 class ChatView(GenericAPIView):
+
+    @transaction.atomic
     def post(self, request):
         # 获取相关参数
         data = json.loads(request.body)
@@ -34,7 +36,7 @@ class ChatView(GenericAPIView):
         fetch_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         # api需要的参数
-        messages_list = Message.objects.filter(room=room)[:50]
+        messages_list = Message.objects.filter(room=room).order_by('-id')[:50]
         serializer_message_list = MessageSerializer(messages_list, many=True)
         message_params = serializer_message_list.data + [{'role': 'user', 'content': content}]
 
@@ -110,8 +112,8 @@ class RoomView(ModelViewSet):
 
 class MessageView(ModelViewSet):
     queryset = Message.objects.all()
+    pagination_class = None
     serializer_class = MessageSerializer
     filterset_fields = ['user', 'room']  # 过滤字段
-    search_fields = ['content']  # 搜索字段
-    ordering_fields = ['user__username', 'id']  # 允许排序的字段
-    ordering = ['id']  # 默认排序
+
+
