@@ -1,7 +1,8 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -100,6 +101,60 @@ class RoomView(ModelViewSet):
     search_fields = ['name']
     ordering_fields = ['user__username', 'id']  # 允许排序的字段
     ordering = ['-create_time']
+
+    @action(detail=False, methods=['get'])
+    def categorized(self, request):
+
+        user = request.query_params.get('user')
+        now = timezone.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        yesterday_start = today_start - timedelta(days=1)
+        three_days_ago_start = today_start - timedelta(days=3)
+        seven_days_ago_start = today_start - timedelta(days=7)
+        one_month_ago_start = today_start - timedelta(days=30)
+        today_end = today_start + timedelta(days=1)
+
+        # 获取过滤条件范围内的所有数据
+        start_time = one_month_ago_start
+        end_time = today_end
+        rooms = Room.objects.filter(create_time__gte=start_time, create_time__lt=end_time, user=user)
+        active_room = rooms.filter(active=True)
+
+        # 在内存中对查询结果进行分类
+        today_rooms = []
+        yesterday_rooms = []
+        three_days_ago_rooms = []
+        seven_days_ago_rooms = []
+        one_month_ago_rooms = []
+
+        for room in rooms:
+            if today_start <= room.create_time < today_end:
+                today_rooms.append(room)
+            elif yesterday_start <= room.create_time < today_start:
+                yesterday_rooms.append(room)
+            elif three_days_ago_start <= room.create_time < yesterday_start:
+                three_days_ago_rooms.append(room)
+            elif seven_days_ago_start <= room.create_time < three_days_ago_start:
+                seven_days_ago_rooms.append(room)
+            elif one_month_ago_start <= room.create_time < seven_days_ago_start:
+                one_month_ago_rooms.append(room)
+
+        # 序列化数据
+        today_serializer = RoomSerializer(today_rooms, many=True)
+        yesterday_serializer = RoomSerializer(yesterday_rooms, many=True)
+        three_days_ago_serializer = RoomSerializer(three_days_ago_rooms, many=True)
+        seven_days_ago_serializer = RoomSerializer(seven_days_ago_rooms, many=True)
+        one_month_ago_serializer = RoomSerializer(one_month_ago_rooms, many=True)
+        active_room_serializer = RoomSerializer(instance=active_room,many=True)
+
+        return Response({
+            '今天': today_serializer.data,
+            '昨天': yesterday_serializer.data,
+            '三天前': three_days_ago_serializer.data,
+            '七天前': seven_days_ago_serializer.data,
+            '一个月前': one_month_ago_serializer.data,
+            'active_room': active_room_serializer.data
+        })
 
     @action(detail=False, methods=['patch'])
     @transaction.atomic
