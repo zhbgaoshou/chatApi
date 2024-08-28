@@ -117,8 +117,8 @@ class RoomView(ModelViewSet):
         # 获取过滤条件范围内的所有数据
         start_time = one_month_ago_start
         end_time = today_end
-        rooms = Room.objects.filter(create_time__gte=start_time, create_time__lt=end_time, user=user)
-        active_room = rooms.filter(active=True)
+        rooms = Room.objects.filter(create_time__gte=start_time, create_time__lt=end_time, user=user)[:50]
+        active_room = Room.objects.filter(active=True,user=user)
 
         # 在内存中对查询结果进行分类
         today_rooms = []
