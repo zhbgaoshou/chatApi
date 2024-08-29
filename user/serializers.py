@@ -6,17 +6,17 @@ from .models import Profile
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['image']
+        fields = ['image','default_room_id']
 
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
-    image = serializers.ImageField(write_only=True, required=False)
     date_joined = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+    image = serializers.ImageField(required=False)
 
     class Meta:
         model = User
-        fields = ['id', "username", "email", "password", "date_joined", 'profile', 'image','is_superuser','is_staff','is_active','last_login']
+        fields = ['id', "username", "email", "password", "date_joined", 'profile','is_superuser','is_staff','is_active','last_login','image']
         extra_kwargs = {
             "password": {"write_only": True, "min_length": 6},
             'is_superuser':{'read_only': True},

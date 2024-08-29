@@ -15,4 +15,5 @@ urlpatterns = [
     path('info', views.UserInfoView.as_view(), name='info'),
     path('destroy', views.DestroyView.as_view(), name='destroy'),
     path('set-password', views.SetPasswordView.as_view(), name='set_password'),
+    path('toggle-room', views.ToggleRoomView.as_view(), name='toggle_room')
 ]

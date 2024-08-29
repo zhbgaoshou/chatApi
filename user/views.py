@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.response import Response
 
+from chat.models import Room
 from user.serializers import UserSerializer
 from django.contrib.auth.models import User
 
@@ -46,3 +47,15 @@ class DestroyView(GenericAPIView):
         user.is_active = False
         user.save()
         return Response({"message": "注销成功"}, status=status.HTTP_200_OK)
+
+class ToggleRoomView(GenericAPIView):
+    def patch(self, request):
+        room_id = request.data.get("room_id")
+        user = request.user
+        
+        room = Room.objects.get(id=room_id)
+        user.profile.default_room = room
+        user.profile.save()
+        user_serializer = UserSerializer(user)
+        
+        return Response(user_serializer.data, status=status.HTTP_200_OK)

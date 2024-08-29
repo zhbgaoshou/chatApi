@@ -105,7 +105,7 @@ class RoomView(ModelViewSet):
     @action(detail=False, methods=['get'])
     def categorized(self, request):
 
-        user = request.query_params.get('user')
+        user = request.user
         now = timezone.now()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         yesterday_start = today_start - timedelta(days=1)
@@ -117,8 +117,7 @@ class RoomView(ModelViewSet):
         # 获取过滤条件范围内的所有数据
         start_time = one_month_ago_start
         end_time = today_end
-        rooms = Room.objects.filter(create_time__gte=start_time, create_time__lt=end_time, user=user)[:50]
-        active_room = Room.objects.filter(active=True,user=user)
+        rooms = Room.objects.filter(create_time__gte=start_time, create_time__lt=end_time, user=user).order_by('-create_time')[:50]
 
         # 在内存中对查询结果进行分类
         today_rooms = []
@@ -145,20 +144,17 @@ class RoomView(ModelViewSet):
         three_days_ago_serializer = RoomSerializer(three_days_ago_rooms, many=True)
         seven_days_ago_serializer = RoomSerializer(seven_days_ago_rooms, many=True)
         one_month_ago_serializer = RoomSerializer(one_month_ago_rooms, many=True)
-        active_room_serializer = RoomSerializer(instance=active_room,many=True)
 
         return Response({
-            '今天': today_serializer.data,
-            '昨天': yesterday_serializer.data,
-            '三天前': three_days_ago_serializer.data,
-            '七天前': seven_days_ago_serializer.data,
-            '一个月前': one_month_ago_serializer.data,
-            'active_room': active_room_serializer.data
+            'today': {'date':'今天','data':today_serializer.data},
+            'yesterday': {'date':'昨天','data':yesterday_serializer.data},
+            'three_days_ago': {'date':'三天前','data':three_days_ago_serializer.data},
+            'seven_days_ago': {'date':'七天前','data':seven_days_ago_serializer.data},
+            'one_month_ago': {'date':'一个月前','data':one_month_ago_serializer.data},
         })
+        
 
-    @action(detail=False, methods=['patch'])
-    @transaction.atomic
-    def update_active(self, request, *args, **kwargs):
+   
         if not isinstance(request.data, list):
             return Response({'error': 'Expected a list of items.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -177,6 +173,7 @@ class RoomView(ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    
 
 class MessageView(ModelViewSet):
     queryset = Message.objects.all()

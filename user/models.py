@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from chat.models import Room
 from django.db import models
 import os
 import uuid
@@ -28,4 +29,5 @@ def user_directory_path(instance, filename):
 # Create your models here.
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    default_room = models.OneToOneField(Room, on_delete=models.SET_NULL, null=True, blank=True)
     image = models.ImageField(default='default.jpg', upload_to=user_directory_path, blank=True, null=True)
