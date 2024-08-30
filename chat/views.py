@@ -89,7 +89,7 @@ class ChatView(APIView):
             return Response(message_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_messages(self, room):
-        messages_list = Message.objects.filter(room=room).order_by('id')[:20].only('role', 'content')
+        messages_list = Message.objects.filter(room=room).order_by('id')[:10].only('role', 'content')
         serializer_message_list = MessageSerializer(messages_list, many=True)
         return serializer_message_list
 
