@@ -25,6 +25,15 @@ def user_directory_path(instance, filename):
     # 生成文件上传路径: user/images/YYYY-MM-DD/
     return os.path.join('user/images', datetime.now().strftime('%Y-%m-%d'), filename)
 
+class AiModel(models.Model):
+    name = models.CharField(max_length=100, help_text='模型名字')
+    description = models.TextField(help_text='模型描述')
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
+    is_default = models.BooleanField(default=False, help_text='是否默认模型')
+
+    def __str__(self):
+        return self.name
 
 # Create your models here.
 class Profile(models.Model):
